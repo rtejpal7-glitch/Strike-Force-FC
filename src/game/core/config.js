@@ -1,0 +1,132 @@
+// Central tuning values. All distances are in metres, times in seconds.
+
+export const PITCH = {
+  length: 105,
+  width: 68,
+  halfLength: 52.5,
+  halfWidth: 34,
+  goalWidth: 7.32,
+  goalHeight: 2.44,
+  goalDepth: 2.0,
+};
+
+export const PLAYER = {
+  startZ: -45,
+  eyeHeight: 1.68,
+  runSpeed: 7.2,
+  maxPossession: 100,
+  possessionRegainOnKill: 25,
+  kickZ: 40.5, // where the final shot is taken
+  baseFov: 72,
+  zoomFov: 30,
+};
+
+export const COMBAT = {
+  detectRange: 26, // opponent starts running at the player
+  triggerRange: 11.5, // player stops, combat zone entered
+  resumeDelay: 2.2,
+};
+
+// Opponents, in the order they are met. Difficulty rises down the list.
+export const ROSTER = [
+  {
+    id: 'd1',
+    name: 'Luca Ferrante',
+    number: 6,
+    role: 'Defensive Midfielder',
+    x: 5,
+    z: -10,
+    hp: 110,
+    engageDistance: 7.5,
+    strafeSpeed: 1.6,
+    strafeRange: 2.5,
+    tackleInterval: 5.5,
+    windup: 1.25,
+    tackleDamage: 10,
+    staggerThreshold: 22,
+    dodgeChance: 0,
+    look: { skin: 0xe0b48f, hair: 0x2b1b10, hairStyle: 'short', height: 1.0, build: 1.0, eyes: 0x5a3b1f, face: { jaw: 1.0, nose: 1.0, beard: 'stubble' } },
+  },
+  {
+    id: 'd2',
+    name: 'Kwame Asante',
+    number: 3,
+    role: 'Left Back',
+    x: -8,
+    z: 2,
+    hp: 170,
+    engageDistance: 7.5,
+    strafeSpeed: 2.3,
+    strafeRange: 3.2,
+    tackleInterval: 4.6,
+    windup: 1.05,
+    tackleDamage: 12,
+    staggerThreshold: 32,
+    dodgeChance: 0.18,
+    look: { skin: 0x6b4430, hair: 0x111111, hairStyle: 'curly', height: 1.04, build: 1.05, eyes: 0x3a2412, face: { jaw: 1.1, nose: 1.15, brow: 1.2, beard: 'goatee' } },
+  },
+  {
+    id: 'd3',
+    name: 'Erik Lindqvist',
+    number: 5,
+    role: 'Centre Back',
+    x: 6,
+    z: 17,
+    hp: 250,
+    engageDistance: 8,
+    strafeSpeed: 3.0,
+    strafeRange: 3.6,
+    tackleInterval: 3.9,
+    windup: 0.9,
+    tackleDamage: 15,
+    staggerThreshold: 45,
+    dodgeChance: 0.3,
+    look: { skin: 0xf1c9a5, hair: 0xc9a24a, hairStyle: 'long', height: 1.1, build: 1.12, eyes: 0x4a7fb0, face: { jaw: 1.15, nose: 1.05, beard: 'beard' } },
+  },
+  {
+    id: 'd4',
+    name: 'Diego Morales',
+    number: 4,
+    role: 'Captain · Sweeper',
+    x: -4,
+    z: 31,
+    hp: 340,
+    engageDistance: 8,
+    strafeSpeed: 3.7,
+    strafeRange: 4,
+    tackleInterval: 3.2,
+    windup: 0.75,
+    tackleDamage: 18,
+    staggerThreshold: 60,
+    dodgeChance: 0.4,
+    armband: true,
+    look: { skin: 0xc58c5c, hair: 0x1a1a1a, hairStyle: 'mohawk', height: 1.06, build: 1.18, eyes: 0x4b3018, face: { jaw: 1.2, nose: 0.95, brow: 1.3, beard: 'stubble' } },
+  },
+  {
+    id: 'gk',
+    name: 'Viktor "The Wall" Brandt',
+    number: 1,
+    role: 'Goalkeeper — FINAL BOSS',
+    isKeeper: true,
+    x: 0,
+    z: 50.5,
+    hp: 700,
+    engageDistance: 9,
+    strafeSpeed: 4.2,
+    strafeRange: 3.3,
+    tackleInterval: 6.5,
+    windup: 0.8,
+    tackleDamage: 20,
+    staggerThreshold: 80,
+    dodgeChance: 0.35,
+    throwInterval: 2.6,
+    throwDamage: 12,
+    look: { skin: 0xe8c09a, hair: 0x5a3a1c, hairStyle: 'fade', height: 1.15, build: 1.25, eyes: 0x5b7a4a, face: { jaw: 1.25, nose: 1.1, brow: 1.1, beard: 'beard' } },
+  },
+];
+
+export const KITS = {
+  opponent: { shirt: 0xc8102e, trim: 0xffffff, shorts: 0xf5f5f5, socks: 0xc8102e, boots: 0x111111 },
+  keeper: { shirt: 0xc6f000, trim: 0x111111, shorts: 0x111111, socks: 0xc6f000, boots: 0xff6a00 },
+  player: { shirt: 0x1d4ed8, shorts: 0x0b1f5c, socks: 0x1d4ed8, boots: 0xffffff, skin: 0xd9a37c },
+};
