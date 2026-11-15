@@ -97,9 +97,9 @@ export function StartScreen() {
           <div className="how-col">
             <h3>How to play</h3>
             <ol>
-              <li>You run and dribble automatically. {touch ? 'The joystick' : 'WASD'} steers your lane and lets you step around in fights.</li>
+              <li>You run and dribble automatically.{touch ? '' : ' WASD steers your lane and lets you step around in fights.'}</li>
               <li>When a defender closes in, you stop and the fight begins.</li>
-              <li>{touch ? 'Drag the right side of the screen to aim, then hold FIRE.' : 'Aim with the mouse and fire.'} Headshots deal extra damage.</li>
+              <li>{touch ? 'Drag the screen with your right thumb to aim, hold FIRE with your left.' : 'Aim with the mouse and fire.'} Headshots deal extra damage.</li>
               <li>
                 A red <b>!</b> means a slide tackle is coming — deal enough damage to interrupt it, or lose ball control.
               </li>
@@ -111,10 +111,9 @@ export function StartScreen() {
             <h3>Controls</h3>
             {touch ? (
               <ul className="keys">
-                <li>🕹️ <b>Left thumb</b>: joystick to steer and step around</li>
-                <li>👆 <b>Right side</b>: drag to aim (crosshair in the centre)</li>
-                <li>🔴 <b>FIRE</b>: hold to shoot, and drag it to aim while firing</li>
-                <li>⟳ reload · ◎ sniper scope · ⇄ or tap a weapon to switch</li>
+                <li>👆 <b>Right thumb</b>: drag the screen to aim (crosshair in the centre)</li>
+                <li>🔴 <b>Left thumb</b>: hold <b>FIRE</b> to shoot</li>
+                <li>⟳ reload · ◎ sniper scope · ⇄ or tap a weapon to switch (all on the left)</li>
               </ul>
             ) : (
             <ul className="keys">

@@ -424,15 +424,9 @@ kbd {
 /* ---- on-screen controls ---- */
 .touch-controls { position: absolute; inset: 0; }
 .touch-layer { position: absolute; inset: 0; touch-action: none; -webkit-user-select: none; user-select: none; }
-.joy-base {
-  position: absolute; left: calc(96px + var(--sl)); top: calc(100% - 92px - var(--sb)); width: 104px; height: 104px; margin: -52px 0 0 -52px;
-  border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.08), rgba(255,255,255,0.16));
-  border: 2px solid rgba(255,255,255,0.35); pointer-events: none; opacity: 0.55; transition: opacity 0.15s;
-}
-.joy-base.active { opacity: 1; transition: none; }
-.joy-knob {
-  position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; margin: -24px 0 0 -24px; border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #fff, #c9d4ff); box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+.aim-hint {
+  position: absolute; right: calc(24px + var(--sr)); bottom: calc(16px + var(--sb)); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.35; pointer-events: none;
 }
 .touch-buttons { position: absolute; inset: 0; pointer-events: none; }
 .t-btn {
@@ -442,17 +436,17 @@ kbd {
 }
 .t-btn:active, .t-btn.pressed { transform: scale(0.94); }
 .t-fire {
-  right: calc(26px + var(--sr)); bottom: calc(30px + var(--sb)); width: 86px; height: 86px; font-size: 22px; letter-spacing: 0.08em;
+  left: calc(26px + var(--sl)); bottom: calc(30px + var(--sb)); width: 86px; height: 86px; font-size: 22px; letter-spacing: 0.08em;
   background: radial-gradient(circle at 40% 35%, rgba(255,80,80,0.9), rgba(170,10,30,0.9)); border-color: rgba(255,255,255,0.8);
   box-shadow: 0 6px 20px rgba(200,16,46,0.45);
 }
 .t-fire.pressed { background: radial-gradient(circle at 40% 35%, #ff9a9a, #d01030); box-shadow: 0 0 28px rgba(255,60,60,0.8); }
 .touch-controls:not(.combat) .t-fire { opacity: 0.45; }
-.t-reload { right: calc(124px + var(--sr)); bottom: calc(24px + var(--sb)); width: 50px; height: 50px; font-size: 24px; }
-.t-scope { right: calc(118px + var(--sr)); bottom: calc(86px + var(--sb)); width: 46px; height: 46px; font-size: 22px; }
+.t-reload { left: calc(124px + var(--sl)); bottom: calc(24px + var(--sb)); width: 50px; height: 50px; font-size: 24px; }
+.t-scope { left: calc(118px + var(--sl)); bottom: calc(86px + var(--sb)); width: 46px; height: 46px; font-size: 22px; }
 .t-scope.on { background: var(--accent); color: #111; }
 .t-scope.dim { opacity: 0.4; }
-.t-swap { right: calc(40px + var(--sr)); bottom: calc(126px + var(--sb)); width: 46px; height: 46px; font-size: 20px; }
+.t-swap { left: calc(40px + var(--sl)); bottom: calc(126px + var(--sb)); width: 46px; height: 46px; font-size: 20px; }
 
 /* ---- compact HUD ---- */
 .touch .topbar { top: 6px; width: min(46vw, 420px); padding: 4px 10px; gap: 8px; border-radius: 10px; }
@@ -495,11 +489,11 @@ kbd {
 .touch .weapon-slot.selected { transform: translateY(-3px); }
 .touch .slot-key, .touch .slot-name { display: none; }
 .touch .slot-ammo { font-size: 10px; }
-.touch .ammo-panel { position: fixed; right: calc(150px + var(--sr)); bottom: calc(138px + var(--sb)); width: auto; padding: 2px 8px; background: transparent; border: 0; text-align: right; pointer-events: none; }
+.touch .ammo-panel { position: fixed; left: calc(150px + var(--sl)); bottom: calc(138px + var(--sb)); width: auto; padding: 2px 8px; background: transparent; border: 0; text-align: left; pointer-events: none; }
 .touch .ammo-name, .touch .controls-hint { display: none; }
 .touch .ammo-count { font-size: 26px; text-shadow: 0 2px 4px #000; }
 .touch .ammo-reserve { font-size: 14px; }
-.touch .reload-bar { height: 10px; width: 80px; margin-left: auto; }
+.touch .reload-bar { height: 10px; width: 80px; }
 .touch .reload-bar span { font-size: 7px; line-height: 10px; }
 .touch .ammo-warn { font-size: 10px; text-shadow: 0 1px 3px #000; }
 .touch .replay-frame { top: 50px; right: calc(8px + var(--sr)); width: min(250px, 30vw); border-width: 2px; }

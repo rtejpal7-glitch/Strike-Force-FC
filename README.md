@@ -81,12 +81,11 @@ both devices are on the same network (not a guest network). For a full-screen ex
 
 | Action | Touch |
 | --- | --- |
-| Move | Virtual joystick: touch anywhere on the left side (steers your lane while running; steps in any direction during fights) |
-| Aim | Drag on the right half of the screen (PUBG-style camera look, crosshair stays centred) |
-| Fire | Hold the red **FIRE** button. Drag your thumb on it to aim while shooting |
-| Reload / scope / switch | ⟳ / ◎ (sniper) / ⇄, or tap a weapon at the bottom |
+| Aim | Right thumb: drag anywhere on the screen outside the buttons (PUBG-style camera look, crosshair stays centred) |
+| Fire | Left thumb: hold the red **FIRE** button (bottom-left) |
+| Reload / scope / switch | ⟳ / ◎ (sniper) / ⇄ next to FIRE on the left, or tap a weapon at the bottom |
 
-Both thumbs work at the same time, and taps on HUD buttons never move, aim or fire. Aim sensitivity is in the
+You run and dribble automatically on mobile. Aiming and firing work at the same time, and taps on HUD buttons never move, aim or fire. Aim sensitivity is in the
 pause menu. Phones start on Medium graphics. Turn off silent mode to hear sound on iPhone.
 
 ## Controls
