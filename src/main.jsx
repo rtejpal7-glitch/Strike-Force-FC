@@ -27,6 +27,35 @@ document.addEventListener(
   { passive: false }
 );
 
+// Fill the whole screen. iOS home-screen ("standalone") apps can report a viewport that is too
+// short in landscape (or stale after rotating), so there we use the physical screen size.
+function fitToScreen() {
+  let w = window.innerWidth;
+  let h = window.innerHeight;
+  const standalone = window.navigator.standalone === true || window.matchMedia?.('(display-mode: standalone), (display-mode: fullscreen)').matches;
+  if (standalone && window.screen?.width) {
+    const long = Math.max(screen.width, screen.height);
+    const short = Math.min(screen.width, screen.height);
+    const landscape = window.matchMedia?.('(orientation: landscape)').matches ?? w > h;
+    w = Math.max(w, landscape ? long : short);
+    h = Math.max(h, landscape ? short : long);
+  }
+  const root = document.documentElement.style;
+  root.setProperty('--app-w', `${w}px`);
+  root.setProperty('--app-h', `${h}px`);
+}
+fitToScreen();
+const refit = () => {
+  fitToScreen();
+  // iOS settles the new size a moment after rotating
+  setTimeout(fitToScreen, 250);
+  setTimeout(fitToScreen, 700);
+};
+window.addEventListener('resize', refit);
+window.addEventListener('orientationchange', refit);
+window.addEventListener('pageshow', refit);
+window.visualViewport?.addEventListener('resize', refit);
+
 createRoot(document.getElementById('root')).render(<App />);
 
 // Offline support when the game is hosted (production build over HTTPS only).

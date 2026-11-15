@@ -14,9 +14,11 @@
 * { box-sizing: border-box; }
 html, body, #root { margin: 0; height: 100%; background: #05070d; overflow: hidden; }
 /* Lock the page in place on phones: no scrolling, rubber-banding, text selection or callouts */
-html, body { position: fixed; inset: 0; width: 100%; overscroll-behavior: none; -webkit-text-size-adjust: 100%; }
+/* Size comes from --app-w / --app-h, measured in main.jsx (iOS home-screen apps report a short
+   viewport in landscape, which left a black band at the bottom). */
+html, body { position: fixed; top: 0; left: 0; width: var(--app-w, 100%); height: var(--app-h, 100%); overscroll-behavior: none; -webkit-text-size-adjust: 100%; }
 body { -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; touch-action: none; }
-#root { height: 100dvh; }
+#root { position: fixed; top: 0; left: 0; width: var(--app-w, 100vw); height: var(--app-h, 100dvh); }
 button, select, summary, input { touch-action: manipulation; }
 .overlay, .cel-list, .scrollable { touch-action: pan-y; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
 body { font-family: var(--ui); color: #fff; user-select: none; -webkit-user-select: none; }
