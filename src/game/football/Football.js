@@ -97,7 +97,7 @@ export class Football {
     } else {
       // Player stopped: ball settles in front of their feet.
       this.speed = 0;
-      this.ahead += (1.75 - this.ahead) * Math.min(1, dt * 3);
+      this.ahead += ((this.restAhead || 1.75) - this.ahead) * Math.min(1, dt * 3);
     }
     this.lateral += this.lateralVel * dt;
     this.lateralVel *= Math.exp(-2 * dt);

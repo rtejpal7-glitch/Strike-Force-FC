@@ -5,6 +5,7 @@ import { ROSTER } from './game/core/config.js';
 import { GameContext } from './ui/useGameStore.js';
 import { HUD } from './ui/HUD.jsx';
 import { CelebrationScreen } from './ui/CelebrationScreen.jsx';
+import { TouchControls } from './ui/TouchControls.jsx';
 import { StartScreen, PauseMenu, GoalOverlay, VictoryScreen, DefeatScreen } from './ui/Menus.jsx';
 import { useSyncExternalStore } from 'react';
 
@@ -33,14 +34,24 @@ export default function App() {
   const screen = useSyncExternalStore(store.subscribe, () => store.get().screen);
   const fatal = useSyncExternalStore(store.subscribe, () => store.get().fatal);
   const warning = useSyncExternalStore(store.subscribe, () => store.get().renderWarning);
+  const inputMode = useSyncExternalStore(store.subscribe, () => store.get().inputMode);
+  const touch = inputMode === 'touch';
   const ctx = useMemo(() => ({ store, engine }), [store]);
   const showHud = screen === 'playing' || screen === 'paused' || screen === 'goal';
 
   return (
     <GameContext.Provider value={ctx}>
-      <div ref={rootRef} className={`app screen-${screen}`}>
+      <div ref={rootRef} className={`app screen-${screen} ${touch ? 'touch' : 'desktop'}`}>
         <div ref={mountRef} className="viewport" />
+        {touch && screen === 'playing' && <TouchControls />}
         {showHud && <HUD />}
+        {touch && (
+          <div className="rotate-hint">
+            <div>📱↻</div>
+            <b>Turn your phone sideways</b>
+            <span>Strike Force FC is played in landscape.</span>
+          </div>
+        )}
         {screen === 'menu' && <StartScreen />}
         {screen === 'paused' && <PauseMenu />}
         {screen === 'goal' && <GoalOverlay />}

@@ -38,6 +38,8 @@ export function createInitialState(roster) {
     celebrationClips: [],
     celebrationFolder: 'unknown',
     celebrationError: null,
+    inputMode: 'desktop',
+    aimSensitivity: 1,
     celebrationLoading: null,
     loading: true,
   };

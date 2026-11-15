@@ -13,6 +13,12 @@
 
 * { box-sizing: border-box; }
 html, body, #root { margin: 0; height: 100%; background: #05070d; overflow: hidden; }
+/* Lock the page in place on phones: no scrolling, rubber-banding, text selection or callouts */
+html, body { position: fixed; inset: 0; width: 100%; overscroll-behavior: none; -webkit-text-size-adjust: 100%; }
+body { -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; touch-action: none; }
+#root { height: 100dvh; }
+button, select, summary, input { touch-action: manipulation; }
+.overlay, .cel-list, .scrollable { touch-action: pan-y; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
 body { font-family: var(--ui); color: #fff; user-select: none; -webkit-user-select: none; }
 
 .app { position: relative; width: 100%; height: 100%; --aim-x: 50%; --aim-y: 47%; }
@@ -406,3 +412,149 @@ kbd {
 .cel-error .btn.small { margin: 4px 6px 0 0; font-size: 14px; padding: 2px 12px; }
 .cel-spinner { width: 20px; height: 20px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.35); border-top-color: #fff; animation: spin 0.8s linear infinite; }
 .cel-clip.loading .cel-clip-btn { border-color: rgba(255,255,255,0.4); }
+
+
+/* =====================================================================
+   PHONE / TOUCH LAYOUT  (only applies when the game is in touch mode)
+   Sized for iPhone landscape (~667–932 × 375–430 CSS px) and safe areas.
+   ===================================================================== */
+.app.touch { --sl: env(safe-area-inset-left, 0px); --sr: env(safe-area-inset-right, 0px); --sb: env(safe-area-inset-bottom, 0px); }
+.touch .game-canvas { cursor: default; }
+
+/* ---- on-screen controls ---- */
+.touch-controls { position: absolute; inset: 0; }
+.touch-layer { position: absolute; inset: 0; touch-action: none; -webkit-user-select: none; user-select: none; }
+.joy-base {
+  position: absolute; left: calc(96px + var(--sl)); top: calc(100% - 92px - var(--sb)); width: 104px; height: 104px; margin: -52px 0 0 -52px;
+  border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.08), rgba(255,255,255,0.16));
+  border: 2px solid rgba(255,255,255,0.35); pointer-events: none; opacity: 0.55; transition: opacity 0.15s;
+}
+.joy-base.active { opacity: 1; transition: none; }
+.joy-knob {
+  position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; margin: -24px 0 0 -24px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, #c9d4ff); box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+}
+.touch-buttons { position: absolute; inset: 0; pointer-events: none; }
+.t-btn {
+  position: absolute; pointer-events: auto; touch-action: none; border-radius: 50%; color: #fff; font-family: var(--display);
+  background: rgba(8,12,28,0.55); border: 2px solid rgba(255,255,255,0.45); display: grid; place-items: center;
+  -webkit-user-select: none; user-select: none; padding: 0;
+}
+.t-btn:active, .t-btn.pressed { transform: scale(0.94); }
+.t-fire {
+  right: calc(26px + var(--sr)); bottom: calc(30px + var(--sb)); width: 86px; height: 86px; font-size: 22px; letter-spacing: 0.08em;
+  background: radial-gradient(circle at 40% 35%, rgba(255,80,80,0.9), rgba(170,10,30,0.9)); border-color: rgba(255,255,255,0.8);
+  box-shadow: 0 6px 20px rgba(200,16,46,0.45);
+}
+.t-fire.pressed { background: radial-gradient(circle at 40% 35%, #ff9a9a, #d01030); box-shadow: 0 0 28px rgba(255,60,60,0.8); }
+.touch-controls:not(.combat) .t-fire { opacity: 0.45; }
+.t-reload { right: calc(124px + var(--sr)); bottom: calc(24px + var(--sb)); width: 50px; height: 50px; font-size: 24px; }
+.t-scope { right: calc(118px + var(--sr)); bottom: calc(86px + var(--sb)); width: 46px; height: 46px; font-size: 22px; }
+.t-scope.on { background: var(--accent); color: #111; }
+.t-scope.dim { opacity: 0.4; }
+.t-swap { right: calc(40px + var(--sr)); bottom: calc(126px + var(--sb)); width: 46px; height: 46px; font-size: 20px; }
+
+/* ---- compact HUD ---- */
+.touch .topbar { top: 6px; width: min(46vw, 420px); padding: 4px 10px; gap: 8px; border-radius: 10px; }
+.touch .stat-block { min-width: 44px; }
+.touch .stat-block .label { font-size: 8px; letter-spacing: 0.08em; }
+.touch .stat-block .value { font-size: 20px; }
+.touch .progress-head { font-size: 8px; margin-bottom: 3px; }
+.touch .progress-track { height: 8px; }
+.touch .player-marker { width: 12px; height: 12px; margin-left: -6px; border-width: 2px; }
+.touch .opp-marker { width: 15px; height: 15px; font-size: 8px; border-width: 1px; }
+.touch .opp-marker.keeper { width: 18px; height: 18px; font-size: 7px; }
+.touch .top-right { top: 6px; right: calc(8px + var(--sr)); gap: 6px; }
+.touch .top-right button { width: 36px; height: 36px; font-size: 14px; border-radius: 9px; }
+.touch .fps-meter { top: 46px; right: calc(8px + var(--sr)); }
+.touch .combat-panel { top: 50px; width: min(300px, 40vw); padding: 5px 10px 6px; }
+.touch .combat-id { margin-bottom: 3px; gap: 6px; }
+.touch .shirt-num { width: 26px; height: 26px; font-size: 18px; border-radius: 6px; }
+.touch .opp-name { font-size: 16px; }
+.touch .opp-role { font-size: 8px; }
+.touch .hp-bar { height: 12px; }
+.touch .hp-text { font-size: 9px; line-height: 12px; }
+.touch .combat-status { font-size: 9px; margin-top: 3px; }
+.touch .danger-tip { display: none; }
+.touch .toast { top: 30%; font-size: clamp(16px, 3.6vw, 24px); white-space: normal; text-align: center; max-width: 60vw; }
+.touch .commentary { top: 48px; bottom: auto; left: calc(8px + var(--sl)); width: min(30vw, 260px); }
+.touch .comm-head { display: none; }
+.touch .comm-line { font-size: 11px; padding: 4px 6px; gap: 5px; }
+.touch .comm-line.old { display: none; }
+.touch .comm-speaker { font-size: 12px; line-height: 15px; }
+.touch .comm-emoji { font-size: 12px; line-height: 15px; }
+.touch .comm-line.latest.mood-scream .comm-text { font-size: 11px; }
+.touch .bottom-row { left: calc(190px + var(--sl)); right: calc(190px + var(--sr)); bottom: calc(6px + var(--sb)); justify-content: center; gap: 6px; }
+.touch .possession { position: fixed; top: 6px; left: calc(8px + var(--sl)); width: 130px; padding: 5px 8px; border-radius: 9px; }
+.touch .pos-label { font-size: 9px; margin-bottom: 3px; }
+.touch .pos-label b { font-size: 15px; }
+.touch .pos-bar { height: 6px; }
+.touch .weapon-panel { gap: 4px; }
+.touch .weapon-slot { width: 58px; padding: 3px 2px 2px; border-radius: 8px; }
+.touch .weapon-slot svg { width: 40px; height: 20px; }
+.touch .weapon-slot.selected { transform: translateY(-3px); }
+.touch .slot-key, .touch .slot-name { display: none; }
+.touch .slot-ammo { font-size: 10px; }
+.touch .ammo-panel { position: fixed; right: calc(150px + var(--sr)); bottom: calc(138px + var(--sb)); width: auto; padding: 2px 8px; background: transparent; border: 0; text-align: right; pointer-events: none; }
+.touch .ammo-name, .touch .controls-hint { display: none; }
+.touch .ammo-count { font-size: 26px; text-shadow: 0 2px 4px #000; }
+.touch .ammo-reserve { font-size: 14px; }
+.touch .reload-bar { height: 10px; width: 80px; margin-left: auto; }
+.touch .reload-bar span { font-size: 7px; line-height: 10px; }
+.touch .ammo-warn { font-size: 10px; text-shadow: 0 1px 3px #000; }
+.touch .replay-frame { top: 50px; right: calc(8px + var(--sr)); width: min(250px, 30vw); border-width: 2px; }
+.touch .replay-badge { font-size: 12px; top: 4px; left: 4px; padding: 1px 5px; }
+.touch .replay-slowmo { font-size: 8px; top: 5px; right: 6px; }
+.touch .replay-lower { padding: 3px 6px; }
+.touch .replay-lower b { font-size: 13px; }
+.touch .replay-lower span { font-size: 8px; }
+.touch .crosshair .ch-lines { --gap: 6px; --len: 8px; }
+.touch .crosshair.idle { opacity: 0.5; }
+
+/* ---- menus on a short landscape screen ---- */
+.touch .overlay { padding: 10px calc(12px + var(--sr)) calc(10px + var(--sb)) calc(12px + var(--sl)); place-items: start center; }
+.touch .start-card { padding-top: 4px; }
+.touch .title { font-size: clamp(36px, 8vh, 64px); margin: 2px 0; }
+.touch .tagline { font-size: 13px; margin-bottom: 10px; }
+.touch .btn.big { font-size: 22px; padding: 8px 28px; }
+.touch .how { margin-top: 10px; gap: 8px; }
+.touch .how-col { padding: 8px 12px; }
+.touch .how-col h3 { font-size: 18px; }
+.touch .how-col ol, .touch .how-col ul { font-size: 12px; }
+.touch .lineup { display: none; }
+.touch .gfx-picker, .touch .voice-settings { margin-top: 8px; }
+.touch .panel { max-height: calc(100dvh - 24px); overflow-y: auto; padding: 14px; gap: 6px; }
+.touch .panel h2 { font-size: 30px; }
+.touch .win-title { font-size: 44px !important; }
+.touch .lose-title { font-size: 34px !important; }
+.touch .stars { font-size: 30px; }
+.touch .stat-grid b { font-size: 20px; }
+.touch .cel-panel { top: 8px; bottom: calc(8px + var(--sb)); right: calc(8px + var(--sr)); width: min(330px, 46vw); padding: 10px; gap: 6px; }
+.touch .cel-panel header h2 { font-size: 22px; }
+.touch .cel-panel header p { font-size: 11px; }
+.touch .cel-source { font-size: 10px; padding: 5px 8px; }
+.touch .cel-clip-btn { padding: 5px 8px 5px 5px; gap: 8px; }
+.touch .cel-disc { width: 34px; height: 34px; }
+.touch .cel-clip-text b { font-size: 13px; }
+.touch .cel-panel footer .btn.primary { font-size: 16px; padding: 6px 10px; }
+.touch .cel-banner { font-size: 24px; left: calc(14px + var(--sl)); top: 8px; }
+.touch .cel-now { left: calc(12px + var(--sl)); bottom: calc(10px + var(--sb)); width: min(300px, 44vw); padding: 8px 10px; display: block; }
+.touch .cel-move-name { font-size: 20px; }
+.touch .cel-move-emoji { font-size: 22px; }
+.touch .cel-viz { height: 36px; }
+
+/* ---- portrait warning on phones ---- */
+.rotate-hint { display: none; }
+@media (orientation: portrait) {
+  .app.touch .rotate-hint {
+    position: absolute; inset: 0; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; text-align: center; padding: 24px; background: #05070d; font-size: 15px;
+  }
+  .app.touch .rotate-hint div { font-size: 56px; animation: tilt 1.6s ease-in-out infinite; }
+  .app.touch .rotate-hint b { font-family: var(--display); font-size: 30px; letter-spacing: 0.05em; color: var(--accent); }
+}
+@keyframes tilt { 0%, 30% { transform: rotate(0); } 60%, 100% { transform: rotate(-90deg); } }
+
+.aim-sens { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; padding: 6px 10px; border-radius: 10px; background: var(--panel); border: 1px solid var(--panel-border); }
+.aim-sens input { flex: 1; accent-color: var(--accent); touch-action: pan-x; }
+.aim-sens b { width: 34px; text-align: right; color: var(--accent); }

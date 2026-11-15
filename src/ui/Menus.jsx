@@ -63,9 +63,22 @@ export function VoiceSettings() {
   );
 }
 
+export function AimSensitivity() {
+  const { engine } = useGame();
+  const v = useGameStore((s) => s.aimSensitivity);
+  return (
+    <label className="aim-sens">
+      <span>Aim sensitivity</span>
+      <input type="range" min="0.3" max="2.5" step="0.1" value={v} onChange={(e) => engine.current?.setAimSensitivity(Number(e.target.value))} />
+      <b>{v.toFixed(1)}×</b>
+    </label>
+  );
+}
+
 export function StartScreen() {
   const { engine } = useGame();
   const loading = useGameStore((s) => s.loading);
+  const touch = useGameStore((s) => s.inputMode) === 'touch';
   return (
     <div className="overlay start" onPointerDown={stop}>
       <div className="start-card">
@@ -84,9 +97,9 @@ export function StartScreen() {
           <div className="how-col">
             <h3>How to play</h3>
             <ol>
-              <li>You run and dribble automatically — no movement keys.</li>
+              <li>You run and dribble automatically. {touch ? 'The joystick' : 'WASD'} steers your lane and lets you step around in fights.</li>
               <li>When a defender closes in, you stop and the fight begins.</li>
-              <li>Aim with the mouse and fire. Headshots deal extra damage.</li>
+              <li>{touch ? 'Drag the right side of the screen to aim, then hold FIRE.' : 'Aim with the mouse and fire.'} Headshots deal extra damage.</li>
               <li>
                 A red <b>!</b> means a slide tackle is coming — deal enough damage to interrupt it, or lose ball control.
               </li>
@@ -96,12 +109,22 @@ export function StartScreen() {
           </div>
           <div className="how-col">
             <h3>Controls</h3>
+            {touch ? (
+              <ul className="keys">
+                <li>🕹️ <b>Left thumb</b>: joystick to steer and step around</li>
+                <li>👆 <b>Right side</b>: drag to aim (crosshair in the centre)</li>
+                <li>🔴 <b>FIRE</b>: hold to shoot, and drag it to aim while firing</li>
+                <li>⟳ reload · ◎ sniper scope · ⇄ or tap a weapon to switch</li>
+              </ul>
+            ) : (
             <ul className="keys">
               <li><kbd>Left click</kbd> / <kbd>Space</kbd> fire (hold for rifle)</li>
               <li><kbd>1</kbd>–<kbd>4</kbd>, <kbd>Wheel</kbd>, <kbd>Q</kbd> switch weapon</li>
               <li><kbd>R</kbd> reload · <kbd>Right click</kbd> zoom</li>
+              <li><kbd>WASD</kbd>/<kbd>Arrows</kbd> steer and step around</li>
               <li><kbd>Esc</kbd>/<kbd>P</kbd> pause · <kbd>M</kbd> mute · <kbd>C</kbd> voice commentary · <kbd>F</kbd> FPS</li>
             </ul>
+            )}
             <div className="arsenal">
               {WEAPON_ORDER.map((id) => (
                 <div key={id} className="arsenal-item">
@@ -133,6 +156,7 @@ export function StartScreen() {
 
 export function PauseMenu() {
   const { engine } = useGame();
+  const touch = useGameStore((s) => s.inputMode) === 'touch';
   const muted = useGameStore((s) => s.muted);
   const voice = useGameStore((s) => s.commentaryVoice);
   return (
@@ -149,6 +173,7 @@ export function PauseMenu() {
           {muted ? 'Unmute sound' : 'Mute sound'}
         </button>
         <GraphicsPicker />
+        {touch && <AimSensitivity />}
         <VoiceSettings />
         <button className="btn" onClick={() => engine.current?.toggleCommentary()}>
           {voice ? 'Voice commentary: ON' : 'Voice commentary: OFF'}

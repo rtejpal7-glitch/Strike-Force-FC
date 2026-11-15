@@ -29,6 +29,13 @@ export class PlayerController {
     this.fov = PLAYER.baseFov;
     this.targetFov = PLAYER.baseFov;
     this.lastStepSign = 1;
+    // Touch "free look" on top of the automatic camera (radians)
+    this.lookYaw = 0;
+    this.lookPitch = 0;
+    this.lookYawTarget = 0;
+    this.lookPitchTarget = 0;
+    this.footwork = 0; // 0..1 manual stepping (joystick / WASD) for leg animation
+    this.lane = 0; // preferred lateral position while running
     this.body.root.position.set(this.x, 0, this.z);
     this.body.kick = 0;
     this.body.touch = 0;
@@ -50,6 +57,31 @@ export class PlayerController {
     this.recoil = Math.min(0.35, this.recoil + amount);
   }
 
+  // Drag-to-aim (touch). Positive dYaw turns right, positive dPitch looks up.
+  addLook(dYaw, dPitch) {
+    this.lookYawTarget = THREE.MathUtils.clamp(this.lookYawTarget - dYaw, -0.9, 0.9);
+    this.lookPitchTarget = THREE.MathUtils.clamp(this.lookPitchTarget + dPitch, -0.45, 0.5);
+  }
+
+  // Ease the free-look back to centre (used outside fights)
+  relaxLook(dt, rate = 1.5) {
+    const k = Math.exp(-dt * rate);
+    this.lookYawTarget *= k;
+    this.lookPitchTarget *= k;
+  }
+
+  resetLook() {
+    this.lookYaw = this.lookPitch = this.lookYawTarget = this.lookPitchTarget = 0;
+  }
+
+  // Manual stepping while stopped for a fight. dx/dz in world metres per second,
+  // clamped to the area allowed around the fight position.
+  step(dx, dz, dt, bounds) {
+    this.x = THREE.MathUtils.clamp(this.x + dx * dt, bounds.minX, bounds.maxX);
+    this.z = THREE.MathUtils.clamp(this.z + dz * dt, bounds.minZ, bounds.maxZ);
+    this.footwork = Math.max(this.footwork, Math.min(1, Math.hypot(dx, dz) / 3));
+  }
+
   // Look at a world point (combat) or straight down the pitch (running).
   lookAt(point) {
     this.desiredLook.copy(point);
@@ -68,8 +100,9 @@ export class PlayerController {
     this.z += this.speed * dt;
     this.x += (this.targetX - this.x) * Math.min(1, dt * 1.5) * this.speed01;
 
-    // Run cycle
-    const s01 = this.speed01;
+    // Run cycle (manual stepping also drives the legs and head bob)
+    const s01 = Math.max(this.speed01, this.footwork * 0.65);
+    this.footwork = Math.max(0, this.footwork - dt * 4);
     this.phase += dt * (2.2 + 9.5 * s01);
     const stepSign = Math.sign(Math.sin(this.phase));
     if (s01 > 0.3 && stepSign !== this.lastStepSign) this.audio?.step();
@@ -86,6 +119,12 @@ export class PlayerController {
 
     this.lookTarget.lerp(this.desiredLook, Math.min(1, dt * 4));
     this.camera.lookAt(this.lookTarget);
+    // Touch free-look offset, smoothed so drags feel fluid but responsive
+    const kLook = 1 - Math.exp(-dt * 22);
+    this.lookYaw += (this.lookYawTarget - this.lookYaw) * kLook;
+    this.lookPitch += (this.lookPitchTarget - this.lookPitch) * kLook;
+    if (this.lookYaw) this.camera.rotateY(this.lookYaw);
+    if (this.lookPitch) this.camera.rotateX(this.lookPitch);
 
     // Roll with the stride, recoil kick, and trauma-style shake.
     this.camera.rotateZ(Math.sin(this.phase * 0.5) * 0.012 * s01);

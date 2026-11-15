@@ -4,6 +4,7 @@
 // clip you drop into that folder shows up in the game straight away.
 
 import http from 'node:http';
+import os from 'node:os';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -29,5 +30,7 @@ http
   })
   .listen(port, () => {
     console.log(`\n  Strike Force FC running at  http://localhost:${port}`);
+    for (const list of Object.values(os.networkInterfaces()))
+      for (const a of list || []) if (a.family === 'IPv4' && !a.internal) console.log(`  On your phone (same Wi-Fi):  http://${a.address}:${port}`);
     console.log(`  Celebration clips folder:   ${path.join(root, AUDIO_DIR)}\n`);
   });

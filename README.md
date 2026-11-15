@@ -44,6 +44,51 @@ npm run build      # production build in dist/
 
 Requires Node 18+ and a WebGL-capable browser.
 
+## Play anywhere: hosted on Vercel (no laptop needed)
+
+The project is ready for free hosting on [Vercel](https://vercel.com). `vercel.json` holds the settings, and the build
+uses relative paths, so it also works on Netlify, Cloudflare Pages or GitHub Pages.
+
+1. Sign in at vercel.com with your GitHub account.
+2. **Add New… → Project**, then **Import** `Strike-Force-FC`. If it isn't listed, click "Adjust GitHub App Permissions"
+   and give Vercel access to the repo (private repos are fine).
+3. Leave the detected settings (Framework: Vite, Build: `npm run build`, Output: `dist`) and click **Deploy**.
+4. Open the `https://…vercel.app` link on your iPhone. In Safari, tap **Share → Add to Home Screen** so it opens full
+   screen like an app. After the first visit it also works offline.
+
+Every push to `main` redeploys automatically. Clips committed to `celebration-audio/` appear in the hosted game's
+celebration list, and on the phone you can also pick songs from the Files app with **Add files**.
+
+## Play on your iPhone (from your computer on the same Wi-Fi)
+
+The same game runs on phones with touch controls; desktop keyboard and mouse controls are unchanged.
+
+1. Put your iPhone and computer on the **same Wi-Fi network**.
+2. On the computer, in the project folder:
+   ```bash
+   npm install
+   npm run dev:host
+   ```
+3. Vite prints two addresses. Open the **Network** one on the iPhone in Safari, for example `http://192.168.1.23:5173`.
+4. Hold the phone sideways (landscape).
+
+No build step: `npm run play` serves the ready-made `play.html` and prints the phone address too (`http://<your-ip>:8080`).
+If the phone can't connect, allow Node.js through your computer's firewall (Windows asks the first time) and check
+both devices are on the same network (not a guest network). For a full-screen experience, use Safari's
+**Share → Add to Home Screen** and launch the game from the icon.
+
+### Touch controls
+
+| Action | Touch |
+| --- | --- |
+| Move | Virtual joystick: touch anywhere on the left side (steers your lane while running; steps in any direction during fights) |
+| Aim | Drag on the right half of the screen (PUBG-style camera look, crosshair stays centred) |
+| Fire | Hold the red **FIRE** button. Drag your thumb on it to aim while shooting |
+| Reload / scope / switch | ⟳ / ◎ (sniper) / ⇄, or tap a weapon at the bottom |
+
+Both thumbs work at the same time, and taps on HUD buttons never move, aim or fire. Aim sensitivity is in the
+pause menu. Phones start on Medium graphics. Turn off silent mode to hear sound on iPhone.
+
 ## Controls
 
 | Action | Input |
@@ -52,6 +97,7 @@ Requires Node 18+ and a WebGL-capable browser.
 | Switch weapon | 1–4, mouse wheel, Q (last weapon), or click the HUD icons |
 | Reload | R (auto-reloads when the magazine is empty) |
 | Zoom (sniper scope) | Right mouse button |
+| Steer / step around | WASD or arrow keys |
 | Pause / mute | Esc or P / M |
 | Voice commentary on/off | C |
 

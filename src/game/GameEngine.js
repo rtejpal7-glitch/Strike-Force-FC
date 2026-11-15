@@ -18,6 +18,8 @@ import { CelebrationSystem } from './celebration/CelebrationSystem.js';
 // (running → combat → resuming → … → final run → kick → goal), and syncing
 // a compact snapshot of the game into the React HUD store.
 
+const CENTER_NDC = { x: 0, y: 0 };
+
 export class GameEngine {
   constructor(container, store, hudRoot) {
     this.container = container;
@@ -36,6 +38,14 @@ export class GameEngine {
     this.slowWindows = 0;
     this.blackChecks = 0;
     this.blackStrikes = 0;
+    // Touch devices start in touch mode; the mode follows whatever you actually use.
+    this.touchMode = typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches;
+    this.aimSensitivity = 1;
+    try {
+      this.aimSensitivity = Number(localStorage.getItem('sffc-aim-sens')) || 1;
+    } catch {
+      /* ignore */
+    }
   }
 
   init() {
@@ -103,14 +113,22 @@ export class GameEngine {
       /* storage unavailable */
     }
     if (saved && ['auto', 'high', 'medium', 'low'].includes(saved)) this.gfxMode = saved;
-    const start = this.gfxMode === 'auto' ? (software ? 'low' : 'high') : this.gfxMode;
+    // Phones start on Medium (no post-processing) to keep a smooth frame rate.
+    const start = this.gfxMode === 'auto' ? (software ? 'low' : this.touchMode ? 'medium' : 'high') : this.gfxMode;
     this.applyQuality(start);
     if (software) this.softwareGpu = true;
     this._onVis = () => document.hidden && this.mode === 'play' && this.togglePause(true);
     document.addEventListener('visibilitychange', this._onVis);
 
     this.resetWorld();
-    this.store.set({ loading: false });
+    this._onAnyPointer = (e) => {
+      if (e.pointerType === 'touch' && !this.touchMode) this.setTouchMode(true);
+      else if (e.pointerType === 'mouse' && this.touchMode && e.type === 'pointermove' && (e.movementX || e.movementY)) this.setTouchMode(false);
+    };
+    window.addEventListener('pointerdown', this._onAnyPointer, true);
+    window.addEventListener('pointermove', this._onAnyPointer, true);
+    this.setTouchMode(this.touchMode, true);
+    this.store.set({ loading: false, aimSensitivity: this.aimSensitivity });
     if (this.softwareGpu) this.store.toast('Hardware acceleration looks OFF — graphics set to LOW');
     renderer.setAnimationLoop(() => this.frame());
     if (typeof window !== 'undefined') window.__game = this; // handy for debugging
@@ -127,12 +145,37 @@ export class GameEngine {
     if (this.input && !this.input.aimPx.x) this._setAimCss(w / 2, h * 0.47);
   }
 
-  _setAimCss(x, y) {
+  _setAimCss(x, y, raw = false) {
+    if (this.touchMode && !raw) return; // crosshair stays centred on touch
+    if (!raw) {
+      x = `${x}px`;
+      y = `${y}px`;
+    }
     const el = this.hudRoot?.();
     if (el) {
-      el.style.setProperty('--aim-x', `${x}px`);
-      el.style.setProperty('--aim-y', `${y}px`);
+      el.style.setProperty('--aim-x', x);
+      el.style.setProperty('--aim-y', y);
     }
+  }
+
+  // The replay is drawn exactly inside the .replay-frame box from the HUD, so it
+  // follows the desktop and phone layouts (and iPhone safe areas) automatically.
+  _replayRect() {
+    const el = document.querySelector('.replay-frame');
+    const cv = this.renderer.domElement.getBoundingClientRect();
+    if (el) {
+      const r = el.getBoundingClientRect();
+      if (r.width > 20)
+        return {
+          x: Math.round(r.left - cv.left + el.clientLeft),
+          y: Math.round(r.top - cv.top + el.clientTop),
+          w: Math.round(el.clientWidth),
+          h: Math.round(el.clientHeight),
+        };
+    }
+    const { w } = this.viewSize;
+    const pw = Math.min(360, w * 0.28);
+    return { x: Math.round(w - pw - 11), y: 87, w: Math.round(pw - 6), h: Math.round((pw * 9) / 16 - 6) };
   }
 
   // ------------------------------------------------------------------
@@ -262,6 +305,77 @@ export class GameEngine {
         this.store.set({ renderWarning: this.gpu });
       }
     }
+  }
+
+  // ---------------- Input mode (desktop mouse vs touch) ----------------
+  setTouchMode(on, force = false) {
+    if (this.touchMode === on && !force) return;
+    this.touchMode = on;
+    this.input.reset();
+    this.input.setTouchMove(0, 0);
+    this.player.resetLook();
+    this.football.restAhead = on ? 2.15 : 1.75; // keeps the ball in view with a centred crosshair
+    if (on) this._setAimCss('50%', '50%', true);
+    else this._setAimCss(this.input.aimPx.x || this.viewSize.w / 2, this.input.aimPx.y || this.viewSize.h * 0.47);
+    this.store.set({ inputMode: on ? 'touch' : 'desktop' });
+  }
+
+  setAimSensitivity(v) {
+    this.aimSensitivity = v;
+    try {
+      localStorage.setItem('sffc-aim-sens', String(v));
+    } catch {
+      /* ignore */
+    }
+    this.store.set({ aimSensitivity: v });
+  }
+
+  // Where shots go: the mouse cursor on desktop, the screen centre on touch.
+  _aimNdc() {
+    return this.touchMode ? CENTER_NDC : this.input.aim;
+  }
+
+  // Turn finger drags into camera look (PUBG-style); scaled by zoom so aiming stays precise.
+  _applyTouchLook(dt) {
+    const d = this.input.consumeAimDelta();
+    const P = this.player;
+    const canLook = this.phase === 'combat' || this.phase === 'running' || this.phase === 'final' || this.phase === 'resuming';
+    if (!canLook) {
+      P.resetLook();
+      return;
+    }
+    if (d.x || d.y) {
+      const k = 0.0042 * this.aimSensitivity * (this.camera.fov / 72);
+      P.addLook(d.x * k, -d.y * k);
+      this.lastLookAt = this.time;
+    } else if (this.phase !== 'combat' && this.time - (this.lastLookAt || 0) > 0.6) {
+      P.relaxLook(dt);
+    }
+  }
+
+  // Joystick / WASD: steer your lane while running, step around during fights.
+  _applyMovement(dt) {
+    const m = this.input.move;
+    const P = this.player;
+    if (this.phase === 'running' || this.phase === 'final') {
+      if (m.x) P.lane = THREE.MathUtils.clamp(P.lane - m.x * 4.5 * dt, -PITCH.halfWidth + 4, PITCH.halfWidth - 4);
+      return;
+    }
+    if (this.phase !== 'combat' || (!m.x && !m.y)) return;
+    // Move relative to where you're looking: towards the opponent, plus any drag-look turn.
+    const spot = this.fightSpot;
+    const opp = this.active;
+    const yaw = (opp ? Math.atan2(opp.x - P.x, opp.z - P.z) : 0) + P.lookYaw;
+    const fx = Math.sin(yaw);
+    const fz = Math.cos(yaw);
+    const dx = (-fz * m.x + fx * m.y) * 3.2; // right = (-fz, fx)
+    const dz = (fx * m.x + fz * m.y) * 3.2;
+    P.step(dx, dz, dt, {
+      minX: spot.x - 3.5,
+      maxX: spot.x + 3.5,
+      minZ: spot.z - 2,
+      maxZ: Math.min(spot.z + 1.5, (opp?.anchor.z ?? spot.z + 8) - 5),
+    });
   }
 
   toggleFps() {
@@ -417,12 +531,7 @@ export class GameEngine {
     this._checkBlackFrame();
     this._monitorPerformance(dt);
     if (this.replay.active && this.mode !== 'menu') {
-      const { w, h } = this.viewSize;
-      // Must match .replay-frame in styles.css
-      const pw = Math.min(360, w * 0.28);
-      const ph = (pw * 9) / 16;
-      const top = w < 1100 ? 214 : 84;
-      this.replay.render(this.renderer, { x: Math.round(w - pw - 14 + 3), y: top + 3, w: Math.round(pw - 6), h: Math.round(ph - 6) }, [this.weapons.holder, this.player.body.root]);
+      this.replay.render(this.renderer, this._replayRect(), [this.weapons.holder, this.player.body.root]);
     }
   }
 
@@ -475,7 +584,8 @@ export class GameEngine {
         this.weapons.ready = true;
         const dist = Math.max(4, Math.hypot(opp.x - P.x, opp.z - P.z));
         const lx = THREE.MathUtils.lerp(opp.anchor.x, opp.x, 0.55);
-        const ly = PLAYER.eyeHeight - Math.tan(THREE.MathUtils.degToRad(10)) * dist;
+        // Touch aims through the screen centre, so look a little higher at the opponent.
+        const ly = PLAYER.eyeHeight - Math.tan(THREE.MathUtils.degToRad(this.touchMode ? 6 : 10)) * dist;
         P.lookAt(new THREE.Vector3(lx, ly, opp.z));
         this._handleFiring(opp);
         if (opp.enragedNow) {
@@ -509,6 +619,7 @@ export class GameEngine {
         P.targetSpeed = 0;
         this.weapons.ready = this.phaseT < 0.6;
         if (this.phaseT > COMBAT.resumeDelay) {
+          this.player.lane = this.player.x;
           if (this.activeIndex < this.opponents.length - 1) {
             this.activeIndex++;
             this.setPhase('running');
@@ -583,6 +694,8 @@ export class GameEngine {
       default:
     }
 
+    this._applyMovement(dt);
+    this._applyTouchLook(dt);
     if (this.phase !== 'celebration') P.update(dt);
     this.stadium.followShadow(P.x, P.z);
 
@@ -610,7 +723,7 @@ export class GameEngine {
     else this.football.updateDribble(dt, P.x, P.z, P.speed, (side) => P.body.startTouch(side));
 
     // Weapons & projectiles
-    this.weapons.update(dt, { speed01: P.speed01, aimNdc: this.input.aim });
+    this.weapons.update(dt, { speed01: P.speed01, aimNdc: this._aimNdc() });
     this.combat.updateProjectiles(dt, () => this._onProjectileArrive());
     this.effects.update(dt);
 
@@ -640,7 +753,7 @@ export class GameEngine {
   // Run around any defeated opponents lying in our path.
   _steer() {
     const P = this.player;
-    let target = 0;
+    let target = P.lane;
     for (const o of this.opponents) {
       if (o.alive) continue;
       const ahead = o.z - P.z;
@@ -663,6 +776,7 @@ export class GameEngine {
     this.setPhase('combat');
     opp.engage(this.player.x, this.player.z);
     this.player.targetSpeed = 0;
+    this.fightSpot = { x: this.player.x, z: this.player.z };
     this.audio.whistle(false);
     this.audio.crowdReact(0.5);
     this.store.toast(opp.isKeeper ? `FINAL BOSS: ${opp.def.name}!` : `${opp.def.name} closes in — choose your weapon!`);
@@ -673,7 +787,7 @@ export class GameEngine {
     const held = this.input.firing;
     this.weapons.tryFire(held, pressed, (def, spread) => {
       this.stats.shots++;
-      const r = this.combat.fire(def, spread, this.input.aim, opp);
+      const r = this.combat.fire(def, spread, this._aimNdc(), opp);
       this.player.addRecoil(def.recoil * 0.12);
       this.player.addShake(def.shake);
       this._commentShot(opp, r);
@@ -905,6 +1019,8 @@ export class GameEngine {
 
   dispose() {
     this.renderer.setAnimationLoop(null);
+    window.removeEventListener('pointerdown', this._onAnyPointer, true);
+    window.removeEventListener('pointermove', this._onAnyPointer, true);
     this.celebration?.close();
     this.postfx?.dispose();
     this.commentary?.stop();
